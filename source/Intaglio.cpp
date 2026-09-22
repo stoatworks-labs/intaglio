@@ -108,6 +108,12 @@ IntaglioPlugin::IntaglioPlugin()
 	SetMinInputs( 1 );
 	SetMaxInputs( 1 );
 
+	//Nothing here depends on time. The plate is a pure function of the frame:
+	//no history, no animation, no ping-pong. Saying so stops a host calling
+	//SetTime sixty times a second into a function that discards it, and it is
+	//also the honest answer to `oxbow probe`, which prints it.
+	SetTimeSupported( false );
+
 	//-------------------------------------------------------------------
 	// Defaults. Chosen so that dropping the effect on ordinary footage
 	// prints something that reads as an engraving straight away -- a

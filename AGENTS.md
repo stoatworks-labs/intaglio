@@ -287,6 +287,12 @@ than filtering, and it is the thing `--limits` and `--weight` make an exact
 claim about — so it is worth being able to state the claim about the model and
 then check the render against it.
 
+And the mirror is not tested against itself. Every number `--weight` and
+`--limits` print is the **GPU's** answer compared against the C++ one: ten
+tones across two rasters, six union cases, twelve limit cases. A mirror that
+had drifted from the shader would show up there as a disagreement, not as two
+files quietly agreeing.
+
 ---
 
 ## Every numeric check, and where its tolerance comes from
@@ -347,9 +353,13 @@ measured and says so.
   not need them. Adding the preset machinery would have meant importing the
   host-echo problem tinsel solved for the fleet, for a table nobody has written
   yet.
-- **No temporal filter.** There is no Stability control in the spec and the
-  plate is a pure function of the frame, so the plugin holds no history at all.
-  That also means it has no still-image cost and no ping-pong buffers.
+- **No temporal filter, and `SetTimeSupported( false )`.** There is no
+  Stability control in the spec and the plate is a pure function of the frame,
+  so the plugin holds no history at all — no ping-pong buffers, and nothing for
+  a synthetic clock in the harness to drive. Declaring time unsupported stops a
+  host calling `SetTime` sixty times a second into a function that discards it,
+  and it is what `oxbow probe` prints. nib and the rest of the fleet leave the
+  SDK's default in place; they animate and this does not.
 - **Invert inverts the driving tone**, not the two colours. It makes a
   white-line engraving — the burin cutting the highlights — which is a real
   idiom and a genuinely different drawing, where swapping Ink and Paper is the

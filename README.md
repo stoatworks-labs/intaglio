@@ -104,8 +104,9 @@ harness, which drives the real plugin class headlessly; `oxbow probe` reads the
 bundle the way a host does and finds `SW Intaglio` / `IG01` / effect, but
 nothing has instantiated it. There is no OpenFX port, no browser demo, no
 `--pipe`/`--script`, and no factory presets. It has only been built and
-measured on macOS (Apple Silicon): **0.75 ms/frame at 720p, 1.20 at 1080p,
-4.57 at 4K**. A Windows build ships from CI and nothing has run it.
+measured on macOS (Apple Silicon): **0.59 ms/frame at 720p, 1.19 at 1080p,
+4.57 at 4K** (medians of three runs; the 720p figure jitters between 0.59
+and 0.75). A Windows build ships from CI and nothing has run it.
 
 What is measured, on this machine:
 
