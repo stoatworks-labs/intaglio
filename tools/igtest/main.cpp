@@ -399,6 +399,30 @@ GLuint makeFramebuffer( GLuint texture )
 	return fbo;
 }
 
+/// A rectangle of a finished frame, in the picture's own 0..1 coordinates with
+/// v up -- the same coordinates the card is written in. It exists so a figure
+/// in the README can be reproduced by a command rather than by somebody
+/// cropping a screenshot, which is a picture nobody can re-render later.
+Image cropTo( const Image& image, int width, int height, float u0, float v0, float u1, float v1,
+              int& outWidth, int& outHeight )
+{
+	const int x0 = std::clamp( static_cast< int >( u0 * width ), 0, width - 1 );
+	const int x1 = std::clamp( static_cast< int >( u1 * width ), x0 + 1, width );
+	//Row 0 of a flipped frame is the top, which is v = 1.
+	const int y0 = std::clamp( static_cast< int >( ( 1.0f - v1 ) * height ), 0, height - 1 );
+	const int y1 = std::clamp( static_cast< int >( ( 1.0f - v0 ) * height ), y0 + 1, height );
+
+	outWidth  = x1 - x0;
+	outHeight = y1 - y0;
+
+	Image out( static_cast< size_t >( outWidth ) * outHeight * 4 );
+	for( int y = 0; y < outHeight; ++y )
+		std::memcpy( out.data() + static_cast< size_t >( y ) * outWidth * 4,
+		             image.data() + ( static_cast< size_t >( y0 + y ) * width + x0 ) * 4,
+		             static_cast< size_t >( outWidth ) * 4 );
+	return out;
+}
+
 Image flipRows( const Image& image, int width, int height )
 {
 	Image flipped( image.size() );
@@ -1809,6 +1833,8 @@ int main( int argc, char** argv )
 	int frames  = 2;
 	float noise = 0.0f;
 	std::string mode;
+	float crop[ 4 ] = { 0.0f, 0.0f, 1.0f, 1.0f };
+	bool cropping   = false;
 
 	for( int i = 1; i < argc; ++i )
 	{
@@ -1825,6 +1851,7 @@ int main( int argc, char** argv )
 				"  --frames N            frames to render before reading back (default 2)\n"
 				"  --noise F             per-frame noise on the card, 0..1\n"
 				"  --set \"Name=V\"        set a parameter by its display name. Repeatable.\n"
+				"  --crop u0,v0,u1,v1    write only this rectangle of the frame, v up\n"
 				"  --list                print every parameter and its default, then exit\n"
 				"  --flow                measure the flow field against an analytic tangent\n"
 				"  --pitch               count the lines a flat field is ruled with\n"
@@ -1843,6 +1870,15 @@ int main( int argc, char** argv )
 			cardPath = argv[ ++i ];
 		else if( argument == "--set" && hasNext )
 			settings.push_back( argv[ ++i ] );
+		else if( argument == "--crop" && hasNext )
+		{
+			if( std::sscanf( argv[ ++i ], "%f,%f,%f,%f", &crop[ 0 ], &crop[ 1 ], &crop[ 2 ], &crop[ 3 ] ) != 4 )
+			{
+				std::fprintf( stderr, "--crop wants u0,v0,u1,v1\n" );
+				return 2;
+			}
+			cropping = true;
+		}
 		else if( argument == "--frames" && hasNext )
 			frames = std::atoi( argv[ ++i ] );
 		else if( argument == "--noise" && hasNext )
@@ -1940,12 +1976,21 @@ int main( int argc, char** argv )
 
 			if( !rig.Render( std::max( frames, 1 ), noise ) )
 				result = 1;
-			else if( writePng( outPath, width, height, flipRows( rig.Bytes(), width, height ) ) )
-				std::printf( "wrote %s -- %dx%d, %d frames\n", outPath.c_str(), width, height, frames );
 			else
 			{
-				std::fprintf( stderr, "could not write %s\n", outPath.c_str() );
-				result = 1;
+				Image frame = flipRows( rig.Bytes(), width, height );
+				int outW = width, outH = height;
+				if( cropping )
+					frame = cropTo( frame, width, height, crop[ 0 ], crop[ 1 ], crop[ 2 ], crop[ 3 ], outW, outH );
+
+				if( writePng( outPath, outW, outH, frame ) )
+					std::printf( "wrote %s -- %dx%d of a %dx%d frame, %d frames\n", outPath.c_str(), outW,
+					             outH, width, height, frames );
+				else
+				{
+					std::fprintf( stderr, "could not write %s\n", outPath.c_str() );
+					result = 1;
+				}
 			}
 		}
 	}
