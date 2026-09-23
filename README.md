@@ -19,6 +19,38 @@ Engraving for Resolume Arena/Avenue, as an FFGL effect. An engraver cannot
 choose a grey — the plate has lines, and tone is made by how close together
 they are and how fat each one is.
 
+<!-- downloads:start -->
+
+## Download
+
+**[v0.1.0](https://github.com/stoatworks-labs/intaglio/releases/tag/v0.1.0)** — prebuilt for macOS and Windows. Pick your platform:
+
+<details>
+<summary><b>macOS</b> — Universal (Apple Silicon + Intel)</summary>
+
+| Build | Download | Size |
+| --- | --- | --- |
+| Universal (Apple Silicon + Intel) · .dmg disk image | [`intaglio-0.1.0-macos-universal.dmg`](https://github.com/stoatworks-labs/intaglio/releases/download/v0.1.0/intaglio-0.1.0-macos-universal.dmg) | 211 KB |
+| Universal (Apple Silicon + Intel) · .zip archive | [`intaglio-macos-universal.zip`](https://github.com/stoatworks-labs/intaglio/releases/latest/download/intaglio-macos-universal.zip) | 174 KB |
+
+</details>
+
+<details>
+<summary><b>Windows</b> — x64</summary>
+
+| Build | Download | Size |
+| --- | --- | --- |
+| x64 · .exe installer | [`intaglio-0.1.0-windows-x86_64-setup.exe`](https://github.com/stoatworks-labs/intaglio/releases/download/v0.1.0/intaglio-0.1.0-windows-x86_64-setup.exe) | 218 KB |
+| x64 · .zip archive | [`intaglio-windows-x86_64.zip`](https://github.com/stoatworks-labs/intaglio/releases/latest/download/intaglio-windows-x86_64.zip) | 111 KB |
+
+</details>
+
+All builds, checksums and release notes: [github.com/stoatworks-labs/intaglio/releases](https://github.com/stoatworks-labs/intaglio/releases).
+
+macOS builds are signed and notarised and open normally. The Windows builds are unsigned, so SmartScreen warns once.
+
+<!-- downloads:end -->
+
 ## The one idea
 
 **Tone is carried by the line, not by the pixel.** A line *swells* where the
