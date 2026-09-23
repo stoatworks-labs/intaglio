@@ -36,6 +36,7 @@ anything about how the hatch sets combine.
   against a deliberately wrong model, and required to fail.
 - No dead controls: `python3 tools/sweep.py`
 - Render cost: `./build/igtest --bench`
+- The browser demo still runs the plugin's GLSL: `python3 demo/tools/check_shaders.py`
 - Universal + exports: `lipo -archs` and `nm -gU … | grep _plugMain` — never
   trust the build log for either.
 
@@ -97,9 +98,19 @@ anything about how the hatch sets combine.
   The Windows Arena result is recorded in README Status and AGENTS.md.
 
 ## Not done yet
-- Never loaded into Resolume on macOS; no OFX port; no browser demo. No factory
+- Never loaded into Resolume on macOS; no OFX port. No factory
   presets. Never built on Linux; the universal build has never run on an Intel
   Mac; render cost is measured on macOS (Apple Silicon) only.
+
+## Browser demo
+
+`demo/` is the page at **intaglio-demo.stoatworks-labs.com**: the plugin's own
+seven passes, copied across unedited, plus a hand port of `Controls.cpp` and the
+buffer sizing in `Intaglio.cpp`. The kit in `demo/vendor/` is vendored from
+`infrastructure/stoatworks-backend/resolume-demo/` by its `sync.sh` — fix a kit
+bug THERE, never here. There is no build step; `cf-run npx wrangler deploy` from
+the repo root uploads `demo/` as it stands, and the page is verified by content
+rather than by status code. `AGENTS.md` has what the page leaves out and why.
 
 ## Diagnostics
 

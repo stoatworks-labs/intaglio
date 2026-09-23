@@ -147,8 +147,12 @@ User guide: [docs/USER-GUIDE.md](docs/USER-GUIDE.md), also at https://stoatworks
 It has **never been loaded into Resolume on macOS**. Everything here is the offline
 harness, which drives the real plugin class headlessly; `oxbow probe` reads the
 bundle the way a host does and finds `SW Intaglio` / `IG01` / effect; on macOS
-nothing has instantiated it. There is no OpenFX port, no browser demo, and no factory
-presets. The render cost is measured on
+nothing has instantiated it. There is no OpenFX port and no factory presets. The
+[browser demo](https://intaglio-demo.stoatworks-labs.com) runs the plugin's own seven
+passes ported to WebGL2, and `demo/tools/check_shaders.py` holds that GLSL
+character-for-character against `source/Shaders.cpp` — but the `Controls.cpp`
+conversions and the buffer sizing beside it are a hand translation, and nothing
+checks those. The render cost is measured on
 macOS (Apple Silicon) only: **0.59 ms/frame at 720p, 1.19 at 1080p,
 4.57 at 4K** (medians of three runs; the 720p figure jitters between 0.59
 and 0.75). The universal build has never run on an Intel Mac.

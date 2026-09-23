@@ -163,6 +163,17 @@ step "Shaders"
 shaders_compile || fail "a shader does not compile"
 
 #---------------------------------------------------------------------------
+step "Demo: the browser copy of the shaders"
+#---------------------------------------------------------------------------
+# demo/plugin.js cannot include a C++ file, so it carries its own copy of every
+# shader, and two copies drift quietly -- the plugin keeps working, the page
+# keeps working, and they stop being the same effect. This compares them
+# character for character, and the phase pass's assembly order with them. It
+# says nothing about the page's port of Controls.cpp; only a reader checks that.
+python3 demo/tools/check_shaders.py \
+	|| fail "the demo's shaders have drifted from source/Shaders.cpp -- copy them across, do not edit plugin.js by hand"
+
+#---------------------------------------------------------------------------
 step "Submodule"
 #---------------------------------------------------------------------------
 if [[ ! -f external/ffgl/CMakeLists.txt ]]; then

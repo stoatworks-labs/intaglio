@@ -424,7 +424,8 @@ software renderer); the Windows x64 DLL compiled with MSVC in `release.yml`.
 - **Not built on Linux, and never run on an Intel Mac.** Windows is built:
   `release.yml` compiles the x64 DLL with MSVC. The universal build's x86_64
   slice has never executed.
-- **No OpenFX port and no browser demo.** `igtest --pipe`/`--script` exist
+- **No OpenFX port.** The browser demo exists — see *The browser demo* below.
+  `igtest --pipe`/`--script` exist
   (added 2026-09-23, harness only, rztest's format) and are what the fleet's
   project video was rendered through; they are not a check and assert nothing.
 - **The `Bite` and `Burr` models are judged by eye.** Both are zero-mean or
@@ -434,3 +435,49 @@ software renderer); the Windows x64 DLL compiled with MSVC in `release.yml`.
 - **The 4K figure is 4.57 ms**, 28% of a 60 fps frame. The phase pass is
   roughly constant with resolution, so most of that is the full-resolution
   tensor and blur. It is the number to watch if the chain grows.
+
+---
+
+## The browser demo
+
+`demo/` is the page at **intaglio-demo.stoatworks-labs.com**, built on the shared
+kit in `infrastructure/stoatworks-backend/resolume-demo/` (vendored into
+`demo/vendor/` by its `sync.sh` — fix a kit bug there, never here). Added
+2026-09-24.
+
+**What is the plugin's own code: all of the picture.** Intaglio is seven GPU
+passes and no CPU stage worth the name, so the page runs every one of them —
+copy, tone and its mip chain, structure tensor, the separable tensor blur, the
+phase walk, the engraving and the composite — in the plugin's order and at the
+plugin's formats (RGBA16F, R16F, and the RG32F phase buffer). The nine shader
+strings are copied into `demo/plugin.js` unedited, and the phase pass is
+assembled the way `PhaseShaderSource()` assembles it. `demo/tools/check_shaders.py`
+compares all nine character for character and checks the assembly order on both
+sides; `tools/verify.sh` runs it.
+
+**What is a port, checked by a reader and nothing else.** Every
+`...FromParam` in `Controls.cpp`, and `PitchPixels`, `PhaseDivisor`, `tapsFor`,
+`pow2AtMost` and `pow2AtLeast` from `Intaglio.cpp`, with the uniforms
+`ProcessOpenGL()` sets. They are done in JavaScript doubles where the plugin
+uses floats. Checked once by hand against the figures in this file: a 59-line
+plate sizes a 320×180 phase buffer at 720p and 480×270 at 4K, as the plugin
+does.
+
+**What the page leaves out.** The About block (a text line and four buttons that
+open a browser). There is no audio caveat, because the plugin has no audio path,
+and nothing temporal, because it declares `SetTimeSupported( false )`.
+
+**Decided without asking.** The clip list starts on the synthetic scene and then
+the ramps — the flat panels are what separate this plugin from nib. The presets
+are the page's own (the plugin ships none) and are plain parameter values. A
+line under the canvas reports the ruling and the phase buffer the page sized
+from it, because that sizing is the plugin's least visible decision.
+
+**Left stale on purpose.** `docs/USER-GUIDE.md` still says there is no browser
+demo. The guide is rendered to a PDF and to the website by `build_guides.py`,
+which is a release chore rather than a demo one; correct it at the next guide
+sync.
+
+Deploy with `cf-run npx wrangler deploy` from the repo root; there is no build
+step. Verify by content, not by status code:
+`curl -s 'https://intaglio-demo.stoatworks-labs.com/?cb=1' | grep -o '<title>[^<]*'`.
