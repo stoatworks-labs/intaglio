@@ -43,6 +43,26 @@ jobs:
       - name: Build
         run: cmake --build build --config Release --parallel
 
+      - name: The checks, on the runner's software renderer
+        # Every claim the README makes, then the negative controls. The runner
+        # has no GPU; the harness falls back to Apple's software renderer,
+        # which is a different rasteriser from this repo's development GPU --
+        # the reason to run them here at all. Each check already runs at two
+        # rasters internally. Every one runs even after one fails.
+        run: |
+          failed=""
+          for t in flow pitch weight limits perpendicular crosshatch negative; do
+            echo "::group::igtest --$t"
+            ./build/igtest --$t || failed="$failed --$t"
+            echo "::endgroup::"
+          done
+          if [ -n "$failed" ]; then echo "failed:$failed"; exit 1; fi
+
+      - name: Controls
+        # The only thing that catches a uniform whose name does not match the C++.
+        timeout-minutes: 25
+        run: python3 tools/sweep.py --build build
+
       # Uploading is not only for the artefact. This repo has no package
       # manifest, so github-actions is its only Dependabot ecosystem — and a
       # bump to actions/upload-artifact otherwise touches release.yml alone,
