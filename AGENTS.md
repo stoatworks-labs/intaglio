@@ -3,9 +3,13 @@
 **What it is:** engraved line shading as an FFGL 2.1 effect plugin for Resolume
 Arena/Avenue. It turns a clip into a ruled copper plate: tone is carried by the
 pitch and weight of the line, not by a grey. C++17 + GLSL 4.10, CMake,
-universal macOS `.bundle` and a Windows `.dll`. MIT, intended home
-`github.com/stoatworks-labs/intaglio`. **Local only at v0.1.0** — no remote, no
-tag, not registered anywhere, never loaded into Resolume.
+universal macOS `.bundle` and a Windows `.dll`. MIT. Public at
+`github.com/stoatworks-labs/intaglio` since 2026-09-23, **released at v0.1.0 on
+2026-09-23**, registered on the website and in stoatworks-backend; never loaded
+into Resolume on macOS. User guide: `docs/USER-GUIDE.md` (the only copy anyone
+edits), rendered to `docs/USER-GUIDE.pdf` and to
+https://stoatworks-labs.com/software/intaglio/guide/ by the website's
+`build_guides.py`.
 
 `CLAUDE.md` is the command reference — build, install, verify. This file is the
 *why*: read it before touching the phase pass, the coverage arithmetic, or the
@@ -313,6 +317,11 @@ an implementation to approximate; and whether 32-bit float textures are
 filterable at all. The last of those is the one real portability risk and it is
 listed under "assumed" below.
 
+**On a second rasteriser (2026-09-23).** `ci.yml` runs `--flow`, `--pitch`, `--weight`, `--limits`, `--perpendicular`, `--crosshatch` and `--negative` and
+`tools/sweep.py` on GitHub's macOS runner, which has no GPU, so the harness
+falls back to Apple's software renderer. All of them passed there with the
+tolerances below unchanged. The numbers in the table are still this machine's.
+
 | Check | Number | Where it comes from | Raster-sensitive? |
 | --- | --- | --- | --- |
 | `--flow` improvement | ≥ 33% | nib's floor, restated: below a third the tensor pass is not worth its cost and the honest thing is to delete it. Not a tuned number. | Yes, and run at 960×540 and 480×270. The *absolute* error legitimately differs — the rings are a fixed fraction of the frame, so at half the height they are half as many pixels across and fixed-amplitude noise is a larger disturbance — so both rasters are held to the same **floor on the improvement**, not to the same number of degrees. Measured 93% and 87%. |
@@ -372,11 +381,15 @@ measured and says so.
   once.
 - **Lengths are fractions of the frame height, not pixels.** A plate has a
   ruling and the plate is the picture, not the monitor.
-- `StoatworksAbout.h` and `ATTRIBUTIONS.md` are **provisional hand copies**
-  adapted from nib and graticule, with `guide = ""` because no user guide
-  exists. Registration in the website's `projects.json` will overwrite the
-  first of them; the parameter count is already what registration will produce,
-  so the About block will not change size when it does.
+- `StoatworksAbout.h` is **generated** by stoatworks-backend's `sync-about.py`
+  and `ATTRIBUTIONS.md` by `sync-attributions.py`; the project is registered in
+  the website's `projects.json` (beta, with a guide) and in the backend's
+  sync-about TARGETS, names.json, visibility.json and derived.json. The guide
+  link made the About block five entries — About, User guide, Project page,
+  Source on GitHub, Support the work — so `Controls.h` gained
+  `PT_ABOUT_BUTTON_4` on 2026-09-23 (the `static_assert` against
+  `about::kParamCount` caught it), and the plugin has 30 parameters in all
+  (`igtest --list`): 25 controls plus About. The sweep's 25 is unchanged.
 
 ---
 
@@ -389,9 +402,15 @@ a plist whose version agrees with `CMakeLists.txt` and with
 reading `SW Intaglio` / `IG01` / effect out of it the way a host does, with
 all five control groups plus About in the order `Controls.h` declares them.
 
+**Verified on GitHub (2026-09-23):** every check in the table above except
+`--bench`, and the control sweep, passed on the GPU-less macOS runner (Apple's
+software renderer); the Windows x64 DLL compiled with MSVC in `release.yml`.
+
+**Windows, in Resolume Arena 7.27.1** (win-lab, llvmpipe, 2026-09-23): a CI build passed the fleet's Arena gate 9 of 9 — loads, registers as `SW Intaglio` / `IG01` / effect, all 31 host parameters as declared, renders, and all 26 probed controls move the picture.
+
 **Assumed, or not done:**
 
-- **Never loaded into Resolume.** How the parameters present — whether the two
+- **Never loaded into Resolume on macOS.** How the parameters present — whether the two
   colour triples show as swatches, whether five groups read sensibly in the
   inspector — is untested.
 - **32-bit float textures are assumed to be linearly filterable.** The phase
@@ -399,9 +418,12 @@ all five control groups plus About in the order `Controls.h` declares them.
   since 3.0, but the specification lets an implementation approximate the
   filter weights and nothing here would notice if a driver fell back to nearest
   — the symptom would be lines that stair-step every few pixels. Nothing checks
-  it, because both rasters in every check run on the same driver.
-- **Not built on Windows or Linux.** The CMake is the fleet's and should work;
-  nothing has proven it. CI exists and has never run.
+  it directly. The checks have now passed on a second driver (Apple's software
+  renderer, in CI), which is evidence that it filters well enough for them, not
+  a test of the filter.
+- **Not built on Linux, and never run on an Intel Mac.** Windows is built:
+  `release.yml` compiles the x64 DLL with MSVC. The universal build's x86_64
+  slice has never executed.
 - **No OpenFX port, no browser demo, no `--pipe`/`--script`**, so the fleet's
   project-video pipeline cannot film it.
 - **The `Bite` and `Burr` models are judged by eye.** Both are zero-mean or

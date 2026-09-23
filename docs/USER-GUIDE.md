@@ -20,7 +20,7 @@ the bottom is a tone ramp covering every weight the curve can ask for.*
 > **0.000000** (bare paper). Ink coverage follows the weight curve to within
 > **0.0005** at five tones. Every check runs at two resolutions and fails if the
 > two disagree. All 25 controls are confirmed to change the picture. It has
-> **never been loaded into Resolume on macOS**. <!-- ARENA -->It has not yet been run in Resolume on Windows either.<!-- /ARENA -->
+> **never been loaded into Resolume on macOS**. On Windows, a build of v0.1.0 loads, registers and renders in Resolume Arena 7.27.1, with every control matching what the plugin declares and every one of them moving the picture — on software rendering, so that says nothing about a GPU.
 > We have not tested how the controls look in the host's inspector, for
 > example whether Ink and Paper show as colour swatches. **Try it on a spare
 > layer first**, and please report anything that misbehaves.
