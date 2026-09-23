@@ -1,97 +1,73 @@
 # Attributions
 
-intaglio is built on other people's work. This file lists what that work is, who
-did it, and what it is doing here.
+Intaglio is built on other people's work. This file lists what that work is, who did
+it, and what it is doing here.
 
-> **Provisional.** Across the fleet this file is generated from master lists in
-> `stoatworks-backend` by `scripts/sync-attributions.py`. intaglio is not
-> registered there yet, so this copy is hand-written. Register it before release
-> — and note that the script's `--only` flag truncates the file rather than
-> filtering it.
+It is generated — the master lists live in the `stoatworks-backend` repo and are
+pushed out by `scripts/sync-attributions.py`. Edit it there, not here.
+
+## Code we derived from other people's work
+
+Someone else solved this first, and this project would not exist in its current form without their work.
+
+### Flow field: structure tensor, tensor blur and eigen decomposition — Stoatworks nib
+
+<https://github.com/stoatworks-labs/nib>  
+Licence: MIT  
+Copyright: Stoatworks Labs
+
+The structure tensor pass, the tensor blur and the eigen decomposition in the flow library are copied from nib, not re-derived. A second eigen decomposition would be a second thing to get wrong, and 'obeys the same flow field as nib' is a claim this plugin makes. nib's own flow measurement is re-run against this repo's copy. Two changes, both marked in the source: flowAt also returns sqrt(l1 - l2), and the ruling is steered by that rather than by nib's scale-free anisotropy; and the gradient is taken at a scale, off a mip chain, so that Detail can move it.
+
+### PassBuffer, diagnostics, build and harness shape — Stoatworks tinsel
+
+<https://github.com/stoatworks-labs/tinsel>  
+Licence: MIT  
+Copyright: Stoatworks Labs
+
+Same fleet, copied rather than shared. PassBuffer (FFGLFBO with the SDK's colour-texture leak fixed and three sampling modes), the Diag log, the CMake shape, the offline harness shape, tools/sweep.py and tools/verify.sh come from tinsel, outrun and rosette. rosette's screen-angle and registration checks are the model for measuring a lattice, and the practice of running a raster-sensitive check at more than one raster.
 
 ## Third-party code this project uses
 
+Libraries, SDKs and frameworks the project is built on or bundles.
+
 ### Resolume FFGL SDK
 
-<https://github.com/resolume/ffgl>
-Licence: BSD-3-Clause
+<https://github.com/resolume/ffgl>  
+Licence: BSD-3-Clause  
 Copyright: FreeFrame
 
-Vendored as a git submodule at `external/ffgl`, pinned to `b1afaf9`.
+Vendored as a git submodule at external/ffgl (third_party/ffgl in oxbow).
 
-The plugin ABI itself. An FFGL effect is defined by this SDK's headers — there
-is no other way to be loadable by Resolume Arena and Avenue.
+The plugin ABI itself. An FFGL effect or source is defined by this SDK's headers — there is no other way to be loadable by Resolume Arena and Avenue.
 
 ### GLEW — the OpenGL Extension Wrangler Library
 
-<https://github.com/nigels-com/glew>
-Licence: BSD-3-Clause (with Mesa 3-D and Khronos components)
+<https://github.com/nigels-com/glew>  
+Licence: BSD-3-Clause (with Mesa 3-D and Khronos components)  
 Copyright: Milan Ikits, Marcelo E. Magallon and Lev Povalahev
 
-Windows only, from vcpkg, statically linked. The SDK's headers pull it in for
-the OpenGL function pointers; macOS uses the system OpenGL framework instead.
+Arrives inside the FFGL submodule at external/ffgl/deps/glew-2.1.0. Not fetched separately.
 
-### zlib
+Resolves OpenGL entry points on Windows, where the system headers stop at OpenGL 1.1.
 
-<https://zlib.net>
-Licence: zlib
-Copyright: Jean-loup Gailly and Mark Adler
+### libpng
 
-Ships with macOS. The offline harness links it to deflate its PNG output, which
-is why the PNG writer in `tools/igtest/main.cpp` is fifty lines rather than a
-vendored dependency. Nothing in the shipped plugin uses it.
+<http://www.libpng.org/pub/png/libpng.html>  
+Licence: PNG Reference Library License (libpng)  
+Copyright: the PNG Reference Library authors
 
-## Work from elsewhere in the fleet
+Arrives inside the FFGL submodule, under the SDK's CustomThumbnail sample.
 
-### nib — the flow field
+Part of the upstream SDK tree rather than something these plugins call directly — listed because it is present in the checkout.
 
-<https://github.com/stoatworks-labs/nib>
-Licence: MIT
-Copyright: Stoatworks Labs
+## Work we checked ourselves against
 
-**The structure tensor pass, the tensor blur and the eigen decomposition in
-`kFlowLibrary` are copied from nib**, not re-derived — the same way astable
-took vectrix's beam renderer. Copying was deliberate: a second eigen
-decomposition is a second thing to get wrong, and "obeys the same flow field as
-nib" is a claim this plugin makes and would rather be able to keep. `igtest
---flow` is nib's own measurement, re-run against this repo's copy of the
-shader rather than assumed to carry over.
+No code was taken from these — but they were how we knew we had it right, and that is worth saying out loud.
 
-Two things were changed and both are marked where they live:
+### Flow-based difference of Gaussians and coherence-enhancing filtering
 
-- **`flowAt` returns a fourth number**, `sqrt( l1 - l2 )`, and this plugin
-  steers by that rather than by nib's normalised anisotropy. nib only needs to
-  know whether to *turn* a walk it is already taking; a plate has to decide
-  whether to curve its ruling at all, and anisotropy is scale free — a gradient
-  of one code value in a flat sky reads as directional as the edge of a
-  building. See the comment over `flowAt` in `source/Shaders.cpp`.
-- **The gradient is taken at a scale**, off a mip chain, because `Detail` has to
-  move it here; nib moves scale with the band-pass downstream, and there is no
-  band-pass downstream here.
-
-### tinsel, outrun, rosette
-
-<https://github.com/stoatworks-labs/tinsel>
-Licence: MIT
-Copyright: Stoatworks Labs
-
-`PassBuffer` (`FFGLFBO` with the SDK's colour-texture leak fixed and three
-sampling modes), `Diag`, the CMake shape, the harness shape, `tools/sweep.py`
-and `tools/verify.sh` all come from these. rosette's screen-angle and
-registration checks are the model for measuring a lattice, and its `--register`
-comment is where the lesson about running a raster-sensitive check at more than
-one raster was first written down.
-
-## Method
-
-The structure tensor as the right way to average orientations, and the edge
-tangent flow built from it, are from the published computer-graphics
-literature — Kang, Lee and Chui's flow-based difference of Gaussians and the
-coherence-enhancing filtering line of work it sits in. They are described in
-papers, not copied from anyone's source; the implementation here is nib's, and
-nib's is this fleet's own.
+Using the structure tensor to average orientations, and the edge tangent flow built from it, come from the published computer-graphics literature: Kang, Lee and Chui's flow-based difference of Gaussians and the coherence-enhancing filtering work around it. They are described in papers, not copied from anyone's source. The implementation is nib's, and nib's is this fleet's own.
 
 ## Getting this wrong
 
-If your work is here and the description is inaccurate, the licence is wrong, or
-you would rather not be listed — open an issue and it will be fixed.
+If your work is here and the description is inaccurate, the licence is wrong, or you would rather not be listed — open an issue and it will be fixed.
