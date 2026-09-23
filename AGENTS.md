@@ -424,8 +424,9 @@ software renderer); the Windows x64 DLL compiled with MSVC in `release.yml`.
 - **Not built on Linux, and never run on an Intel Mac.** Windows is built:
   `release.yml` compiles the x64 DLL with MSVC. The universal build's x86_64
   slice has never executed.
-- **No OpenFX port, no browser demo, no `--pipe`/`--script`**, so the fleet's
-  project-video pipeline cannot film it.
+- **No OpenFX port and no browser demo.** `igtest --pipe`/`--script` exist
+  (added 2026-09-23, harness only, rztest's format) and are what the fleet's
+  project video was rendered through; they are not a check and assert nothing.
 - **The `Bite` and `Burr` models are judged by eye.** Both are zero-mean or
   additive decorations on top of a coverage that is measured, and both are set
   to zero by every measurement check, so nothing here says they are right —

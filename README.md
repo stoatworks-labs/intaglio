@@ -136,8 +136,8 @@ User guide: [docs/USER-GUIDE.md](docs/USER-GUIDE.md), also at https://stoatworks
 It has **never been loaded into Resolume on macOS**. Everything here is the offline
 harness, which drives the real plugin class headlessly; `oxbow probe` reads the
 bundle the way a host does and finds `SW Intaglio` / `IG01` / effect; on macOS
-nothing has instantiated it. There is no OpenFX port, no browser demo, no
-`--pipe`/`--script`, and no factory presets. The render cost is measured on
+nothing has instantiated it. There is no OpenFX port, no browser demo, and no factory
+presets. The render cost is measured on
 macOS (Apple Silicon) only: **0.59 ms/frame at 720p, 1.19 at 1080p,
 4.57 at 4K** (medians of three runs; the 720p figure jitters between 0.59
 and 0.75). The universal build has never run on an Intel Mac.
@@ -206,6 +206,8 @@ The offline harness renders the real plugin class headlessly:
     ./build/igtest --flow                     the flow field, in degrees
     ./build/igtest --negative                 every check above, against a wrong model
     ./build/igtest --bench                    720p through 4K
+    ./build/igtest --pipe --size 1920x1080 --script cues.txt
+                                              raw RGBA frames in and out, for filming
     python3 tools/sweep.py                    no control is silently dead
     tools/verify.sh                           all of it, in about twenty seconds
 

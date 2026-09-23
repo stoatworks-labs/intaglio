@@ -15,6 +15,20 @@
         igtest --crosshatch               does the second set arrive where it should?
         igtest --negative                 do the checks above actually fail when they should?
         igtest --bench                    time a frame at 720p through 4K
+        igtest --pipe                     raw frames in, raw frames out
+
+    `--pipe` takes the fleet's frame format, rosette's `rztest --pipe` exactly,
+    so one filming script can drive any of the FFGL plugins:
+
+        ffmpeg -i in.mov -f rawvideo -pix_fmt rgba - \
+          | igtest --pipe --size 1920x1080 [--script cues.txt] \
+          | ffmpeg -f rawvideo -pix_fmt rgba -s 1920x1080 -i - out.mov
+
+    The cue sheet is one `frame Parameter Name value` per line, `#` comments,
+    linear between keys and held before the first and after the last. There
+    is no clock to drive: the plate is a pure function of the frame
+    (`SetTimeSupported( false )`), so `--fps` is accepted for the fleet's
+    command line and changes nothing.
 
     ------------------------------------------------------------------ rasters
 
@@ -40,7 +54,11 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
+#include <fstream>
+#include <map>
+#include <sstream>
 #include <string>
+#include <unistd.h>
 #include <vector>
 
 using namespace intaglio;
@@ -1820,6 +1838,159 @@ bool applySetting( IntaglioPlugin& plugin, const std::string& assignment, std::s
 	error = "no parameter called '" + name + "'";
 	return false;
 }
+
+//---------------------------------------------------------------------------
+// --pipe cue sheet: one 'frame Parameter Name value' per line. The same format
+// and the same interpolation as rosette's rztest, so one filming script drives
+// any of the fleet's plugins.
+//---------------------------------------------------------------------------
+using Track = std::vector< std::pair< int, float > >;
+
+std::map< std::string, Track > loadScript( const std::string& path, std::string& error )
+{
+	std::map< std::string, Track > tracks;
+	std::ifstream file( path );
+	if( !file )
+	{
+		error = "cannot open " + path;
+		return tracks;
+	}
+
+	std::string line;
+	int lineNumber = 0;
+	while( std::getline( file, line ) )
+	{
+		++lineNumber;
+		const size_t hash = line.find( '#' );
+		if( hash != std::string::npos )
+			line.erase( hash );
+		std::istringstream in( line );
+
+		int frame = 0;
+		if( !( in >> frame ) )
+			continue;
+
+		std::vector< std::string > words;
+		std::string word;
+		while( in >> word )
+			words.push_back( word );
+		if( words.size() < 2 )
+		{
+			error = path + ":" + std::to_string( lineNumber ) + ": expected `frame Parameter Name value`";
+			return {};
+		}
+
+		const float value = std::strtof( words.back().c_str(), nullptr );
+		words.pop_back();
+		std::string name = words.front();
+		for( size_t i = 1; i < words.size(); ++i )
+			name += " " + words[ i ];
+
+		tracks[ name ].emplace_back( frame, value );
+	}
+
+	for( auto& entry : tracks )
+		std::sort( entry.second.begin(), entry.second.end() );
+	return tracks;
+}
+
+float valueAt( const Track& track, int frame )
+{
+	if( track.empty() )
+		return 0.0f;
+	if( frame <= track.front().first )
+		return track.front().second;
+	if( frame >= track.back().first )
+		return track.back().second;
+
+	for( size_t i = 1; i < track.size(); ++i )
+	{
+		if( frame <= track[ i ].first )
+		{
+			const auto& a    = track[ i - 1 ];
+			const auto& b    = track[ i ];
+			const float span = static_cast< float >( b.first - a.first );
+			const float t    = span > 0.0f ? ( static_cast< float >( frame - a.first ) / span ) : 1.0f;
+			return a.second + ( b.second - a.second ) * t;
+		}
+	}
+	return track.back().second;
+}
+
+/// Raw RGBA frames on stdin, the plate on stdout, until stdin runs dry.
+int runPipe( Rig& rig, const std::string& scriptPath )
+{
+	//Resolve the script's parameter names once, up front, and refuse to run
+	//on a name that is not a parameter: a misspelled cue that silently did
+	//nothing would produce a take that looks deliberate and is wrong.
+	std::map< unsigned int, Track > automation;
+	if( !scriptPath.empty() )
+	{
+		std::string error;
+		const std::map< std::string, Track > tracks = loadScript( scriptPath, error );
+		if( !error.empty() )
+		{
+			std::fprintf( stderr, "%s\n", error.c_str() );
+			return 2;
+		}
+		for( const auto& entry : tracks )
+		{
+			bool found = false;
+			for( const NamedParameter& parameter : listParameters( rig.plugin ) )
+			{
+				if( parameter.name == entry.first )
+				{
+					automation[ parameter.index ] = entry.second;
+					found                         = true;
+					break;
+				}
+			}
+			if( !found )
+			{
+				std::fprintf( stderr, "script names '%s', which is not a parameter (try --list)\n", entry.first.c_str() );
+				return 2;
+			}
+		}
+	}
+
+	const int width  = rig.width;
+	const int height = rig.height;
+	Image frame( static_cast< size_t >( width ) * height * 4 );
+	for( int index = 0;; ++index )
+	{
+		size_t filled = 0;
+		while( filled < frame.size() )
+		{
+			const ssize_t got = read( STDIN_FILENO, frame.data() + filled, frame.size() - filled );
+			if( got <= 0 )
+				break;
+			filled += static_cast< size_t >( got );
+		}
+		if( filled < frame.size() )
+			break;
+
+		for( const auto& track : automation )
+			rig.Set( track.first, valueAt( track.second, index ) );
+
+		//A raw frame arrives top row first and GL wants bottom row first.
+		//One render per frame: the plate holds no history, so the output is
+		//this frame's and nothing else's.
+		rig.Upload( flipRows( frame, width, height ) );
+		if( !rig.Render( 1 ) )
+			return 1;
+
+		const Image out = flipRows( rig.Bytes(), width, height );
+		size_t written  = 0;
+		while( written < out.size() )
+		{
+			const ssize_t put = write( STDOUT_FILENO, out.data() + written, out.size() - written );
+			if( put <= 0 )
+				return 1;
+			written += static_cast< size_t >( put );
+		}
+	}
+	return 0;
+}
 } // namespace
 
 //---------------------------------------------------------------------------
@@ -1827,6 +1998,8 @@ int main( int argc, char** argv )
 {
 	std::string outPath = "/tmp/intaglio.png";
 	std::string cardPath;
+	std::string scriptPath;
+	bool wantPipe = false;
 	std::vector< std::string > settings;
 	int width   = 1280;
 	int height  = 720;
@@ -1861,6 +2034,9 @@ int main( int argc, char** argv )
 				"  --crosshatch          the second set, and the angle between the sets\n"
 				"  --negative            every check above, against a wrong model, must fail\n"
 				"  --bench               time a frame at 720p through 4K\n"
+				"  --pipe                raw RGBA frames on stdin, raw RGBA frames on stdout\n"
+				"  --script PATH         parameter cues for --pipe: 'frame Name value'\n"
+				"  --width N / --height N / --fps N   the fleet's --pipe spelling; --fps changes nothing\n"
 				"  --help\n" );
 			return 0;
 		}
@@ -1885,6 +2061,16 @@ int main( int argc, char** argv )
 			noise = std::strtof( argv[ ++i ], nullptr );
 		else if( argument == "--list" )
 			mode = "list";
+		else if( argument == "--pipe" )
+			wantPipe = true;
+		else if( argument == "--script" && hasNext )
+			scriptPath = argv[ ++i ];
+		else if( argument == "--width" && hasNext )
+			width = std::atoi( argv[ ++i ] );
+		else if( argument == "--height" && hasNext )
+			height = std::atoi( argv[ ++i ] );
+		else if( argument == "--fps" && hasNext )
+			++i;//no clock: see the header
 		else if( argument == "--flow" || argument == "--pitch" || argument == "--weight"
 		         || argument == "--limits" || argument == "--perpendicular" || argument == "--crosshatch"
 		         || argument == "--negative" || argument == "--bench" )
@@ -1974,7 +2160,9 @@ int main( int argc, char** argv )
 				}
 			}
 
-			if( !rig.Render( std::max( frames, 1 ), noise ) )
+			if( wantPipe )
+				result = runPipe( rig, scriptPath );
+			else if( !rig.Render( std::max( frames, 1 ), noise ) )
 				result = 1;
 			else
 			{

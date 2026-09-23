@@ -18,6 +18,7 @@ anything about how the hatch sets combine.
 - One region of a frame, for a figure: `./build/igtest --out docs/flat-panel.png --crop 0.53,0.34,0.73,0.88`
 - List parameters: `./build/igtest --list`
 - Set anything by name: `./build/igtest --set "Coherence=0" --set "Sets=2"`
+- Film it: `ffmpeg ... -f rawvideo -pix_fmt rgba - | ./build/igtest --pipe --size 1920x1080 --script cues.txt | ffmpeg -f rawvideo -pix_fmt rgba -s 1920x1080 -i - out.mp4` (cue lines: `frame Parameter Name value`)
 
 ## Verify
 - Everything: `tools/verify.sh` (~20 s: fresh universal build, every check, the
@@ -96,8 +97,7 @@ anything about how the hatch sets combine.
   The Windows Arena result is recorded in README Status and AGENTS.md.
 
 ## Not done yet
-- Never loaded into Resolume on macOS; no OFX port; no browser demo; no
-  `--pipe`/`--script`, so the fleet's video pipeline cannot film it. No factory
+- Never loaded into Resolume on macOS; no OFX port; no browser demo. No factory
   presets. Never built on Linux; the universal build has never run on an Intel
   Mac; render cost is measured on macOS (Apple Silicon) only.
 
