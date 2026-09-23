@@ -97,6 +97,17 @@ measurement. The flat panel is the crop above; the strip along the bottom is a
 tone ramp through every weight the curve can ask for. Rendered by the plugin's
 own offline harness (`igtest`).</sub>
 
+[![Intaglio — engraving as an effect, for Resolume](docs/video-thumb.png)](https://www.youtube.com/watch?v=nMA4ogsfsdQ)
+
+*[Watch it](https://www.youtube.com/watch?v=nMA4ogsfsdQ) — 56 seconds: tone
+carried by line weight alone, a plain hatch bending round the form as
+Coherence comes up, cross-hatching arriving with the shadows, Invert as a
+white-line engraving, and the ink, paper, etch and burr controls, ending in
+banknote green. Every frame is the real plugin's output: an FFGL plugin has no
+window, so the footage is rendered by this repository's own offline harness
+(`igtest --pipe`, driven by a cue sheet) rather than filmed off a screen, and
+the clips are Resolume's bundled demo media.*
+
 ## Controls
 
 - **Flow** — Detect On (which channel carries the picture; a red line on a blue
