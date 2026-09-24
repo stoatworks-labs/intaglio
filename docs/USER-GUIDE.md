@@ -295,7 +295,10 @@ Windows.
   driver smoothly filters a high-precision texture. Desktop OpenGL has
   supported this for years, but nothing checks it. If a driver fails here,
   lines would stair-step every few pixels.
-- **No presets, no OpenFX version and no browser demo** in this release.
+- **No presets and no OpenFX version** in this release.
+- **There is a browser demo** at [intaglio-demo.stoatworks-labs.com](https://intaglio-demo.stoatworks-labs.com).
+  It is a port to a web page, not the plugin: the shaders run in WebGL2 and any CPU
+  half is rewritten in JavaScript. The page lists what it does not reproduce.
 
 ---
 
