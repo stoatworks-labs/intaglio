@@ -1,29 +1,35 @@
 # Intaglio user guide
 
-Intaglio is **engraving for [Resolume](https://resolume.com) Arena and Avenue**,
-as an FFGL effect. It turns a clip into a ruled copper plate. An engraver cannot
-choose a grey: the plate has lines, and tone comes from how close together they
-are and how thick each one is. A line swells where the picture darkens and
-tapers where it lightens. The lines run along the picture's own structure, so
-they curve round a face or a building the way a burin would.
+Intaglio is engraving for [Resolume](https://resolume.com) Arena and Avenue, as an
+FFGL effect. It turns a clip into a ruled copper plate, with lines that swell where
+the picture darkens, taper where it lightens, and curve round a face or a building
+the way a burin would.
+
+An engraver can't choose a grey. The plate only has lines, and tone comes from how
+close together they are and how thick each one is. The lines here run along the
+picture's own structure, which is what makes it look engraved rather than just
+stripy.
 
 ![The harness's test card as an engraving: rings, a flat panel, a disc and a tone ramp](hero.png)
 
-*The plugin's offline harness rendered this test card. It is not a Resolume
+*The plugin's offline harness rendered this test card, so it's not a Resolume
 screen capture. The rings on the left have a tangent that can be worked out
-exactly, and that is what the flow field is measured against. The strip along
+exactly, and that's what the flow field is measured against. The strip along
 the bottom is a tone ramp covering every weight the curve can ask for.*
 
-> **Before you rely on this:** released at **v0.1.0**, and honestly early. The
-> central claims are measured on rendered frames, not asserted. A black input
-> prints a coverage of **1.000000** (a solid plate) and a white one
-> **0.000000** (bare paper). Ink coverage follows the weight curve to within
-> **0.0005** at five tones. Every check runs at two resolutions and fails if the
-> two disagree. All 25 controls are confirmed to change the picture. It has
-> **never been loaded into Resolume on macOS**. On Windows, a build of v0.1.0 loads, registers and renders in Resolume Arena 7.27.1, with every control matching what the plugin declares and every one of them moving the picture — on software rendering, so that says nothing about a GPU.
-> We have not tested how the controls look in the host's inspector, for
-> example whether Ink and Paper show as colour swatches. **Try it on a spare
-> layer first**, and please report anything that misbehaves.
+> **Before you rely on this:** it's released at **v0.1.0**, and it's still early days.
+> The central claims are measured on rendered frames rather than taken on trust. A black
+> input prints a coverage of **1.000000** (a solid plate) and a white one **0.000000** (bare
+> paper). Ink coverage follows the weight curve to within **0.0005** at five tones. Every check
+> runs at two resolutions and fails if the two disagree, and all 25 controls are confirmed to
+> change the picture.
+>
+> It has **never been loaded into Resolume on macOS**. On Windows, a build of v0.1.0 loads,
+> registers and renders in Resolume Arena 7.27.1, with every control matching what the plugin
+> declares and every one of them moving the picture. That was on software rendering, so it says
+> nothing about a GPU. I haven't tested how the controls look in the host's inspector, for
+> example whether Ink and Paper show as colour swatches. **Try it on a spare layer first**, and
+> please report anything that misbehaves.
 >
 > This codebase was created with AI assistance, directed and reviewed by a human
 > author.
@@ -49,8 +55,8 @@ There are two downloads:
 - **Windows:** an x64 build, as an installer or a `.zip`.
 
 The macOS build is **Developer ID-signed and notarised**, so it loads as it is.
-You do not need to clear anything or run an `xattr` step. The Windows build is
-not code-signed. Resolume loads plugin files normally, but the installer
+You don't need to clear anything or run an `xattr` step. The Windows build
+isn't code-signed. Resolume loads plugin files normally, but the installer
 triggers a SmartScreen warning the first time you run it: click **More info**,
 then **Run anyway**.
 
@@ -69,7 +75,7 @@ Then try three things, in this order:
 
 1. **Coherence to zero.** The lines stop following the picture and become one
    plain, straight hatch at **Angle Offset**. This is the effect with the main
-   idea taken out, and it is one slider away on purpose. Bring Coherence back
+   idea taken out, and it's one slider away on purpose. Bring Coherence back
    up and watch the ruling bend round the shapes.
 2. **Line Pitch.** This is the ruling. Turning it up gives wider spacing and
    fewer lines. Turning it down gives a finer plate.
@@ -144,16 +150,16 @@ set the two limits:
 Lower Max Weight and the darkest shadows keep their paper between the lines.
 Raise Min Weight and even the highlights keep a hairline.
 
-**Taper** — how soft a line's edge is. At zero it is a crisp burin cut, with a
+**Taper** — how soft a line's edge is. At zero it's a crisp burin cut, with a
 single pixel of antialiasing. At one it looks like a line etched with acid,
-with no hard edge left. **It does not change the tone**: whatever the softening
+with no hard edge left. **It doesn't change the tone**: whatever the softening
 takes off one side of the line's nominal width, it adds back on the other.
 
 ---
 
 ## Cross-hatch
 
-Real engravers add a second set of lines at another angle when one set cannot
+Real engravers add a second set of lines at another angle when one set can't
 get dark enough on its own. Intaglio does the same.
 
 **Sets** — how many sets of lines the plate may carry: **1**, **2** or **3**.
@@ -183,7 +189,7 @@ This group sets the look of the ink and the metal.
 **Ink** and **Paper** — the two colours of the print. Each is declared to the
 host as a red, green and blue triple, which appears as **Ink**, **Ink_Green**,
 **Ink_Blue** and **Paper**, **Paper_Green**, **Paper_Blue**. Depending on how
-Resolume presents them, you will see a colour swatch or three sliders. The
+Resolume presents them, you'll see a colour swatch or three sliders. The
 defaults are a warm near-black ink on a cream paper. For a blueprint look, try
 white ink on dark blue paper.
 
@@ -196,8 +202,8 @@ roughens each line along its length without making the plate darker or lighter
 overall.
 
 **Burr** — the curl of metal a drypoint needle throws up on one side of each
-line. The burr holds extra ink, so one side of every line prints heavier. It
-is what distinguishes a drypoint from an engraving at a distance.
+line. The burr holds extra ink, so one side of every line prints heavier. It's
+what tells a drypoint from an engraving at a distance.
 Burr adds ink, so turning it up darkens the plate slightly.
 
 Bite and Burr were tuned by eye. Every measurement check sets them to zero, so
@@ -211,7 +217,7 @@ the numbers in this guide describe the plate without them.
 clip passes through unchanged.
 
 **Invert** — makes a **white-line engraving**, where the burin cuts the
-highlights instead of the shadows. This is not a swap of Ink and Paper, which
+highlights instead of the shadows. It isn't a swap of Ink and Paper, which
 would give the same drawing as a negative. The lines still follow the picture's
 structure, so you get a different drawing.
 
@@ -232,25 +238,25 @@ though nothing in the plugin draws a grey.
 
 **The flow field is nib's.** Intaglio finds the flow from the *structure
 tensor* of the tone, which is a way of averaging the local direction of change
-that does not get confused when two directions point opposite ways. This part
+that doesn't get confused when two directions point opposite ways. This part
 is copied from its sibling plugin
-[nib](https://github.com/stoatworks-labs/nib), not written a second time, and
-it is measured the same way nib measures it. The test card's rings have a
+[nib](https://github.com/stoatworks-labs/nib) rather than written a second time,
+and it's measured the same way nib measures it. The test card's rings have a
 tangent that can be written down exactly. The plugin's answer is 6.74° off at
-the least-smoothed setting and **0.49°** off at the best. There is one change
+the least-smoothed setting and **0.49°** off at the best. There's one change
 from nib: Intaglio bends its ruling only where the structure is *strong*, not
 just where it has a direction. Otherwise the lines would follow the noise in
 every plain area of the picture.
 
 **nib draws the edges; Intaglio draws the tone.** Put both on a flat grey area
-to see the difference. nib draws nothing there, because there is no edge.
+to see the difference. nib draws nothing there, because there's no edge.
 Intaglio fills it with evenly spaced lines of the pitch and weight that grey
 calls for.
 
 ![A flat grey panel filled with evenly spaced diagonal lines](flat-panel.png)
 
-*A crop of the test card's flat panel. There is no edge anywhere in it, so the
-ruling is simply straight and even.*
+*A crop of the test card's flat panel. There's no edge anywhere in it, so the
+ruling is just straight and even.*
 
 **Time is declared unsupported.** The plate depends only on the current frame.
 Nothing animates on its own, and the plugin tells the host not to send it a
@@ -280,9 +286,9 @@ Windows.
 
 - **Where the flow turns sharply, lines bunch, shear and split.** This limit is
   mathematical, not a shortcut in the code. An evenly spaced family of curves
-  that follows an arbitrary direction field does not exist, which is why real
+  that follows an arbitrary direction field doesn't exist, which is why real
   engravings have lines that fork. The ruling is exact on flat areas and on
-  concentric circles. Everywhere else it is an approximation. On a hostile
+  concentric circles. Everywhere else it's an approximation. On a hostile
   picture you may see a seam running out from the centre of the frame. More
   **Flow Smoothing** and less **Coherence** both make it milder.
 - **Three sets at a Cross Angle of exactly 60° print about 2.5% too dark.** The
@@ -296,15 +302,16 @@ Windows.
   supported this for years, but nothing checks it. If a driver fails here,
   lines would stair-step every few pixels.
 - **No presets and no OpenFX version** in this release.
-- **There is a browser demo** at [intaglio-demo.stoatworks-labs.com](https://intaglio-demo.stoatworks-labs.com).
-  It is a port to a web page, not the plugin: the shaders run in WebGL2 and any CPU
-  half is rewritten in JavaScript. The page lists what it does not reproduce.
+- **There's a browser demo** at [intaglio-demo.stoatworks-labs.com](https://intaglio-demo.stoatworks-labs.com).
+  It's a port to a web page rather than the plugin itself: the shaders run in WebGL2
+  and any CPU half is rewritten in JavaScript. The page lists what it doesn't
+  reproduce.
 
 ---
 
 ## If it looks like it is doing nothing
 
-If a shader fails to compile, the plugin looks as if it is doing nothing. The
+If a shader fails to compile, the plugin looks as if it's doing nothing. The
 log records which of the seven passes failed, along with the graphics card and
 driver:
 
@@ -313,7 +320,7 @@ macOS    ~/Library/Logs/intaglio/intaglio.YYYY-MM-DD.log
 Windows  %LOCALAPPDATA%\intaglio\logs\intaglio.YYYY-MM-DD.log
 ```
 
-If there is no error in the log, check these first:
+If there's no error in the log, check these first:
 
 - **Mix** is at zero.
 - **Ink** and **Paper** are set to the same colour.
